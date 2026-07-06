@@ -462,7 +462,7 @@
 	      Number, subjectKeyIdentifier, and subjectPublicKeyInfo.
 	    </t>
 	    <t>
-              Similarly, for an ASPA PDU, the flag value 1 indicates a
+              Similarly, for an ASPA PDU <xref target="aspa"/>, the flag value 1 indicates a
               new or replacement mapping of the specified Customer AS
               to a set of Provider ASes and the flag value 0 indicates
               the removal of the existent mapping. The details
