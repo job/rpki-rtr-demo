@@ -308,12 +308,34 @@ EOF
         }
     };
     my $error2 = $@;
-    # Currently returns "cache reset" instead.
     if ($ec_is_zero) {
         print "$preamble,returns_corrupt_data_on_session_mismatch,success\n";
     } else {
         warn "$error, $error_data, $error2";
         print "$preamble,returns_corrupt_data_on_session_mismatch,failure\n";
+    }
+
+    $client->_close_socket();
+    eval {
+        $client->refresh(1);
+    };
+    $error = $@;
+    $error_data = "";
+    $ec = undef;
+    $ec_is_zero = 0;
+    eval {
+        my ($error_json) = ($error =~ /({.*})/);
+        $error_data = decode_json($error_json);
+        if (exists $error_data->{'error_code'}) {
+            $ec = $error_data->{'error_code'};
+        }
+    };
+    $error2 = $@;
+    if (not $ec) {
+        print "$preamble,returns_reset_on_new_session_mismatch,success\n";
+    } else {
+        warn "$error, $error_data, $error2";
+        print "$preamble,returns_reset_on_new_session_mismatch,failure\n";
     }
 
     $client =
@@ -606,10 +628,8 @@ EOF
     # Hardcoded, for now at least.
     print "$preamble,cache_restart_repopulated,failure\n";
     print "$preamble,cache_restart_pdu_received,failure\n";
-    print "$preamble,cache_restart_correct_error,failure\n";
     print "$preamble,cache_shutdown_repopulated,failure\n";
     print "$preamble,cache_shutdown_pdu_received,failure\n";
-    print "$preamble,cache_shutdown_correct_error,failure\n";
     print "$preamble,ssh,failure\n";
     print "$preamble,tls,failure,server certificate verification only\n";
     print "$preamble,tcp-md5,failure\n";

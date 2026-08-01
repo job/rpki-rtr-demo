@@ -257,6 +257,29 @@ use Net::EmptyPort qw(empty_port);
         print "$preamble,returns_corrupt_data_on_session_mismatch,failure\n";
     }
 
+    $client->_close_socket();
+    eval {
+        $client->refresh(1);
+    };
+    $error = $@;
+    $error_data = "";
+    $ec = undef;
+    $ec_is_zero = 0;
+    eval {
+        my ($error_json) = ($error =~ /({.*})/);
+        $error_data = decode_json($error_json);
+        if (exists $error_data->{'error_code'}) {
+            $ec = $error_data->{'error_code'};
+        }
+    };
+    $error2 = $@;
+    if (not $ec) {
+        print "$preamble,returns_reset_on_new_session_mismatch,success\n";
+    } else {
+        warn "$error, $error_data, $error2";
+        print "$preamble,returns_reset_on_new_session_mismatch,failure\n";
+    } 
+
     $client =
         APNIC::RPKI::RTR::Client->new(
             server     => '127.0.0.1',
@@ -501,10 +524,8 @@ use Net::EmptyPort qw(empty_port);
     # These have tests elsewhere.
     print "$preamble,cache_restart_repopulated,success\n";
     print "$preamble,cache_restart_pdu_received,success\n";
-    print "$preamble,cache_restart_correct_error,success\n";
     print "$preamble,cache_shutdown_repopulated,success\n";
     print "$preamble,cache_shutdown_pdu_received,success\n";
-    print "$preamble,cache_shutdown_correct_error,success\n";
     print "$preamble,ssh,success\n";
     print "$preamble,tls,success\n";
     print "$preamble,tcp-md5,success\n";

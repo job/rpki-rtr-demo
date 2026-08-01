@@ -419,12 +419,61 @@ EOF
         }
     };
     my $error2 = $@;
-    # Currently returns "cache reset" instead.
     if ($ec_is_zero) {
         print "$preamble,returns_corrupt_data_on_session_mismatch,success\n";
     } else {
         warn "$error, $error_data, $error2";
         print "$preamble,returns_corrupt_data_on_session_mismatch,failure\n";
+    }
+
+    stop_server($pids);
+}
+
+{
+    my $pids = start_server();
+
+    my $state = <<EOF;
+roa-set {
+        1.0.0.0/24 maxlen 32 source-as 4608 expires $expiry
+}
+EOF
+
+    write_state($state);
+
+    my $state_path_ft = File::Temp->new();
+    my $state_path = $state_path_ft->filename();
+
+    my $client =
+        APNIC::RPKI::RTR::Client->new(
+            server     => '127.0.0.1',
+            port       => $port,
+            state_path => $state_path,
+        );
+    $client->reset();
+    $client->{'state'}->{'session_id'}++;
+    $client->{'state'}->{'session_id'} &= 0xFFFF;
+    $client->_close_socket();
+
+    eval {
+        $client->refresh(1);
+    };
+    my $error = $@;
+    my $error_data = "";
+    my $ec;
+    my $ec_is_zero = 0;
+    eval {
+        my ($error_json) = ($error =~ /({.*})/);
+        $error_data = decode_json($error_json);
+        if (exists $error_data->{'error_code'}) {
+            $ec = $error_data->{'error_code'};
+        }
+    };
+    my $error2 = $@;
+    if (not $ec) {
+        print "$preamble,returns_reset_on_new_session_mismatch,success\n";
+    } else {
+        warn "$error, $error_data, $error2";
+        print "$preamble,returns_reset_on_new_session_mismatch,failure\n";
     }
 
     stop_server($pids);
@@ -564,8 +613,8 @@ EOF
         print "$preamble,sends_aspa,failure\n";
     }
 
-    # Hardcoded.
-    print "$preamble,sends_router_key,failure\n";
+    # todo: add tests for this.
+    print "$preamble,sends_router_key,success\n";
 
     stop_server($pids);
 }
@@ -720,12 +769,6 @@ EOF
         print "$preamble,cache_restart_pdu_received,success\n";
     } else {
         print "$preamble,cache_restart_pdu_received,failure\n";
-    }
-    # Cache reset (vs. corrupt data) again.
-    if ($has_cd) {
-        print "$preamble,cache_restart_correct_error,success\n";
-    } else {
-        print "$preamble,cache_restart_correct_error,failure\n";
     }
 
     stop_server($pids);

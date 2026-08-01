@@ -213,6 +213,7 @@ sub run
         my @ready = $select->can_read(1);
         dprint("server: got reads: ".(scalar @ready));
         my %skip_update_check;
+        my %pp_new;
         for my $socket (@ready) {
             if ($socket == $server_socket) {
                 my $new_socket = $socket->accept();
@@ -237,6 +238,7 @@ sub run
                         $select->add($new_socket);
                         dprint("server: adding new client to pool: $pp");
                         $skip_update_check{$pp} = 1;
+                        $pp_new{$pp} = 1;
                     }
                 }
             } else {
@@ -244,7 +246,9 @@ sub run
                 dprint("server: handling client connection ".
                        "for $pp");
                 my $res =
-                    $self->handle_client_connection($socket, $data_dir);
+                    $self->handle_client_connection($socket, $data_dir,
+                                                    $pp_new{$pp});
+                delete $pp_new{$pp};
                 if (not $res) {
                     dprint("server: request for $pp failed, closing");
                     $self->flush($socket);
@@ -371,7 +375,7 @@ sub flush
 
 sub handle_client_connection
 {
-    my ($self, $client, $data_dir) = @_;
+    my ($self, $client, $data_dir, $new) = @_;
 
     my $version = $self->{'max_supported_version'};
     my $versions = $self->{'versions'};
@@ -516,19 +520,31 @@ sub handle_client_connection
             if (not $self->{'no_session_id_check'}) {
                 my $pdu_session_id = $pdu->session_id();
                 my $self_session_id = $self->session_id();
-                if ($pdu->session_id() ne $self->session_id()) {
-                    dprint("server: client session ID ($pdu_session_id) ".
-                           "does not match server session ID ".
-                           "($self_session_id)");
-                    my $err_pdu =
-                        APNIC::RPKI::RTR::PDU::ErrorReport->new(
-                            version          => $version,
-                            error_code       => ERR_CORRUPT_DATA(),
-                            encapsulated_pdu => $pdu,
-                        );
-                    $self->_send($client, $err_pdu->serialise_binary());
-                    $self->flush($client);
-                    $res = 0;
+                if ($pdu_session_id ne $self_session_id) {
+                    dprint("server: got session mismatch (got ".
+                           "'$pdu_session_id', expected ".
+                           "'$self_session_id')");
+                    if ($new) {
+                        dprint("server: client is new, returning reset");
+                        my $cr_pdu =
+                            APNIC::RPKI::RTR::PDU::CacheReset->new(
+                                version => $version,
+                            );
+                        my $sb = $cr_pdu->serialise_binary();
+                        dprint("server: sending cache reset: ".$cr_pdu->serialise_json());
+                        $self->_send($client, $sb);
+                    } else {
+                        dprint("server: client is not new, returning reset");
+                        my $err_pdu =
+                            APNIC::RPKI::RTR::PDU::ErrorReport->new(
+                                version          => $version,
+                                error_code       => ERR_CORRUPT_DATA(),
+                                encapsulated_pdu => $pdu,
+                            );
+                        $self->_send($client, $err_pdu->serialise_binary());
+                        $self->flush($client);
+                        $res = 0;
+                    }
                     goto FINISHED;
                 }
             }
