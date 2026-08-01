@@ -724,6 +724,159 @@
         </t>
       </section>
 
+      <section anchor="cachereset" title="Cache Reset">
+        <figure>
+          <artwork>
+0          8          16         24        31
+.-------------------------------------------.
+| Protocol |   PDU    |                     |
+| Version  |   Type   |         zero        |
+|    2     |    8     |                     |
++-------------------------------------------+
+|                                           |
+|                 Length=8                  |
+|                                           |
+`-------------------------------------------'
+          </artwork>
+        </figure>
+        <t>
+          The cache sends a Cache Reset PDU in response to a Serial
+          Query in order to inform the router that the cache cannot
+          provide an incremental update starting from the Serial Number
+          specified by the router.  The router must decide whether to
+          issue a Reset Query or perhaps switch to a different cache.
+        </t>
+      </section>
+
+      <section anchor="eod" title="End of Data">
+        <figure>
+          <artwork>
+0          8          16         24        31
+.-------------------------------------------.
+| Protocol |   PDU    |                     |
+| Version  |   Type   |     Session ID      |
+|    2     |    7     |                     |
++-------------------------------------------+
+|                                           |
+|                 Length=24                 |
+|                                           |
++-------------------------------------------+
+|                                           |
+|               Serial Number               |
+|                                           |
++-------------------------------------------+
+|                                           |
+|              Refresh Interval             |
+|                                           |
++-------------------------------------------+
+|                                           |
+|               Retry Interval              |
+|                                           |
++-------------------------------------------+
+|                                           |
+|              Expire Interval              |
+|                                           |
+`-------------------------------------------'
+          </artwork>
+        </figure>
+        <t>
+          A cache sends an End of Data record to tell the router it has
+          no more data for the request.
+        </t>
+        <t>
+          The Session ID and Protocol Version MUST be the same as that of
+          the corresponding Cache Response which began the (possibly null)
+          sequence of payload PDUs.
+        </t>
+        <t>
+          The Refresh Interval, Retry Interval, and Expire Interval
+          are all 32-bit elapsed times measured in seconds. They express
+          the timing parameters which the cache expects the router to
+          use in deciding when to send subsequent Serial Query or
+          Reset Query PDUs to the cache.
+          See <xref target="timing"/> for an explanation of the use
+          and the range of allowed values for these parameters.
+        </t>
+	<t>
+	  Note that the End of Data PDU changed significantly between
+	  versions 0 and 1.  The Version 2 End of Data PDU is the same
+	  as that of Version 1.
+	</t>
+      </section>
+
+      <section anchor="error" title="Error Report">
+        <figure>
+          <artwork>
+0          8          16         24        31
+.-------------------------------------------.
+| Protocol |   PDU    |                     |
+| Version  |   Type   |     Error Code      |
+|    2     |    10    |                     |
++-------------------------------------------+
+|                                           |
+|                  Length                   |
+|                                           |
++-------------------------------------------+
+|                                           |
+|       Length of Encapsulated PDU          |
+|                                           |
++-------------------------------------------+
+|                                           |
+~               Erroneous PDU               ~
+|                                           |
++-------------------------------------------+
+|                                           |
+|         Length of Arbitrary Text          |
+|                                           |
++-------------------------------------------+
+|                                           |
+|              Arbitrary Text               |
+~                    of                     ~
+|          Error Diagnostic Message         |
+|                                           |
+`-------------------------------------------'
+          </artwork>
+        </figure>
+        <t>
+          This PDU is used by either party to report an error to the
+          other.
+        </t>
+        <t>
+          Error codes and handling are described in <xref
+          target="errorcodes"/>.
+        </t>
+	<t>
+	  The Erroneous PDU field is a binary copy of the PDU causing
+	  the error condition, including all fields.
+	</t>
+        <t>
+          If the error is generic (e.g., "Internal Error") and not
+          associated with the PDU to which it is responding, the
+          Erroneous PDU field MUST be empty and the Length of
+          Encapsulated PDU field MUST be zero.
+        </t>
+        <t>
+          An Error Report PDU MUST NOT be sent as a response to an
+          Error Report PDU.  If an erroneous Error Report PDU is
+          received, the session SHOULD be dropped and the receiving
+          party SHOULD log this information.  If such a PDU is
+          received by a router, the router SHOULD also flush all data
+          learned from that cache.
+        </t>
+        <t>
+          If the entire erroneous PDU will not fit in the Erroneous PDU
+          field, it MUST be truncated.  At a minimum, the first four
+          octets MUST be included.  Beware any attempts to parse an
+          Erroneous PDU.
+        </t>
+        <t>
+          The Arbitrary Text field is optional; if not present, the
+          Length of Arbitrary text field MUST be zero.  If Arbitrary
+          Text is present, it MUST be a string in UTF-8 encoding (see
+          <xref target="RFC3629"/>) in the Queen's English.
+        </t>
+      </section>
+
       <section anchor="ipv4" title="IPv4 Prefix">
         <figure>
           <artwork>
@@ -837,86 +990,6 @@
         </t>
       </section>
 
-      <section anchor="eod" title="End of Data">
-        <figure>
-          <artwork>
-0          8          16         24        31
-.-------------------------------------------.
-| Protocol |   PDU    |                     |
-| Version  |   Type   |     Session ID      |
-|    2     |    7     |                     |
-+-------------------------------------------+
-|                                           |
-|                 Length=24                 |
-|                                           |
-+-------------------------------------------+
-|                                           |
-|               Serial Number               |
-|                                           |
-+-------------------------------------------+
-|                                           |
-|              Refresh Interval             |
-|                                           |
-+-------------------------------------------+
-|                                           |
-|               Retry Interval              |
-|                                           |
-+-------------------------------------------+
-|                                           |
-|              Expire Interval              |
-|                                           |
-`-------------------------------------------'
-          </artwork>
-        </figure>
-        <t>
-          A cache sends an End of Data record to tell the router it has
-          no more data for the request.
-        </t>
-        <t>
-          The Session ID and Protocol Version MUST be the same as that of
-          the corresponding Cache Response which began the (possibly null)
-          sequence of payload PDUs.
-        </t>
-        <t>
-          The Refresh Interval, Retry Interval, and Expire Interval
-          are all 32-bit elapsed times measured in seconds. They express
-          the timing parameters which the cache expects the router to
-          use in deciding when to send subsequent Serial Query or
-          Reset Query PDUs to the cache.
-          See <xref target="timing"/> for an explanation of the use
-          and the range of allowed values for these parameters.
-        </t>
-	<t>
-	  Note that the End of Data PDU changed significantly between
-	  versions 0 and 1.  The Version 2 End of Data PDU is the same
-	  as that of Version 1.
-	</t>
-      </section>
-
-      <section anchor="cachereset" title="Cache Reset">
-        <figure>
-          <artwork>
-0          8          16         24        31
-.-------------------------------------------.
-| Protocol |   PDU    |                     |
-| Version  |   Type   |         zero        |
-|    2     |    8     |                     |
-+-------------------------------------------+
-|                                           |
-|                 Length=8                  |
-|                                           |
-`-------------------------------------------'
-          </artwork>
-        </figure>
-        <t>
-          The cache sends a Cache Reset PDU in response to a Serial
-          Query in order to inform the router that the cache cannot
-          provide an incremental update starting from the Serial Number
-          specified by the router.  The router must decide whether to
-          issue a Reset Query or perhaps switch to a different cache.
-        </t>
-      </section>
-
       <section anchor="routerkey" title="Router Key">
         <figure>
           <artwork>
@@ -987,79 +1060,6 @@
 	  As the Subject Public Key Info is a variable length field, it
 	  must be decoded to determine where the PDU terminates.
 	</t>
-      </section>
-
-      <section anchor="error" title="Error Report">
-        <figure>
-          <artwork>
-0          8          16         24        31
-.-------------------------------------------.
-| Protocol |   PDU    |                     |
-| Version  |   Type   |     Error Code      |
-|    2     |    10    |                     |
-+-------------------------------------------+
-|                                           |
-|                  Length                   |
-|                                           |
-+-------------------------------------------+
-|                                           |
-|       Length of Encapsulated PDU          |
-|                                           |
-+-------------------------------------------+
-|                                           |
-~               Erroneous PDU               ~
-|                                           |
-+-------------------------------------------+
-|                                           |
-|         Length of Arbitrary Text          |
-|                                           |
-+-------------------------------------------+
-|                                           |
-|              Arbitrary Text               |
-~                    of                     ~
-|          Error Diagnostic Message         |
-|                                           |
-`-------------------------------------------'
-          </artwork>
-        </figure>
-        <t>
-          This PDU is used by either party to report an error to the
-          other.
-        </t>
-        <t>
-          Error codes and handling are described in <xref
-          target="errorcodes"/>.
-        </t>
-	<t>
-	  The Erroneous PDU field is a binary copy of the PDU causing
-	  the error condition, including all fields.
-	</t>
-        <t>
-          If the error is generic (e.g., "Internal Error") and not
-          associated with the PDU to which it is responding, the
-          Erroneous PDU field MUST be empty and the Length of
-          Encapsulated PDU field MUST be zero.
-        </t>
-        <t>
-          An Error Report PDU MUST NOT be sent as a response to an
-          Error Report PDU.  If an erroneous Error Report PDU is
-          received, the session SHOULD be dropped and the receiving
-          party SHOULD log this information.  If such a PDU is
-          received by a router, the router SHOULD also flush all data
-          learned from that cache.
-        </t>
-        <t>
-          If the entire erroneous PDU will not fit in the Erroneous PDU
-          field, it MUST be truncated.  At a minimum, the first four
-          octets MUST be included.  Beware any attempts to parse an
-          Erroneous PDU.
-        </t>
-        <t>
-          The Arbitrary Text field is optional; if not present, the
-          Length of Arbitrary text field MUST be zero.  If Arbitrary
-          Text is present, it MUST be a string in UTF-8 encoding (see
-          <xref target="RFC3629"/>) in the Queen's English.
-        </t>
       </section>
 
       <section anchor="aspa" title="ASPA">
