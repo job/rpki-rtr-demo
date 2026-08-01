@@ -663,9 +663,9 @@ Internet-Draft            RPKI-Router Protocol               August 2026
    and it should therefore be the cache's job to simplify the change
    set, thus reducing work for the router.
 
-   If the cache does not have the data needed to update the router, then
-   it responds with a Cache Reset PDU (Section 5.6).  There are two main
-   scenarios where this will happen: when the Serial Number requested in
+   If the cache is not able to provide the data required for the
+   specified Serial Number, then the cache responds with a Cache Reset
+   PDU (Section 5.6).
 
 
 
@@ -674,18 +674,16 @@ Bush, et al.             Expires 2 February 2027               [Page 12]
 Internet-Draft            RPKI-Router Protocol               August 2026
 
 
-   the Serial Query is no longer available to the cache, and when the
-   session ID in the Serial Query designates a session that is no longer
-   available to the cache.
+   If the router and cache have already established a session between
+   them, and the router sends a Serial Notify query with a Session ID
+   different from that previously communicated to the router by the
+   client, then the cache terminates the session with an Error Report
+   PDU with Error Code 0 ("Corrupt Data"), per Section 5.1.
 
-   Per section 5.1, if the Serial Query contains a session ID that is
-   not equal to that previously established in the session between the
-   router and the cache, the cache terminates the session with an Error
-   Report PDU with Error Code 0 ("Corrupt Data").  The behaviour in the
-   second scenario from the previous paragraph is limited to two cases:
-   where the router is using the previously-established session ID, and
-   where the cache is unable to determine whether the router is using
-   the previously-established session ID, due to data loss or similar.
+   If the router and cache have not already established a session
+   between them, and the router sends a Serial Notify query with a
+   Session ID that is unknown to the cache, then the cache responds with
+   a Cache Reset PDU (Section 5.6).
 
 5.4.  Reset Query
 
@@ -718,10 +716,12 @@ Internet-Draft            RPKI-Router Protocol               August 2026
    |                                           |
    `-------------------------------------------'
 
-   The cache responds to queries with zero or more payload PDUs.  When
-   replying to a Serial Query (Section 5.3), the cache sends the set of
-   announcements and withdrawals necessary to bring the router's state
-   current with all changes that have occurred since the Serial Number
+
+
+
+
+
+
 
 
 
@@ -730,6 +730,10 @@ Bush, et al.             Expires 2 February 2027               [Page 13]
 Internet-Draft            RPKI-Router Protocol               August 2026
 
 
+   The cache responds to queries with zero or more payload PDUs.  When
+   replying to a Serial Query (Section 5.3), the cache sends the set of
+   announcements and withdrawals necessary to bring the router's state
+   current with all changes that have occurred since the Serial Number
    sent by the client router.  When replying to a Reset Query
    (Section 5.4), the cache sends the set of all data records it has; in
    this case, the announce/withdraw flag in the payload PDUs MUST have
@@ -761,10 +765,6 @@ Internet-Draft            RPKI-Router Protocol               August 2026
    perhaps switch to a different cache.
 
 5.7.  End of Data
-
-
-
-
 
 
 
