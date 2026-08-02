@@ -960,6 +960,16 @@
           MUST set the remaining bits of the Prefix to zero, for
           consistency with the approach used for the other unused
           components of the PDU.
+    
+        </t>
+
+        <t>
+
+          The router client MUST verify that the zero bits in the
+          Prefix are set correctly, in accordance with the previous
+          paragraph.  If they are not set correctly, the router client
+          MUST send an Error Report PDU with Error Code 1 ("Corrupt
+          Data").
 
         </t>
         </section>
