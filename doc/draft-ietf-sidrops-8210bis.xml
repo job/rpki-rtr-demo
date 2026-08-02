@@ -103,6 +103,7 @@
         The traditional security and IANA considerations end
         the document.
       </t>
+
       <t>
         The protocol is extensible in order to support new PDUs with
         new semantics, if deployment experience indicates that they are
@@ -120,7 +121,7 @@
         and only when, they appear in all capitals, as shown here.</t>
       </section>
 
-      <section title="Changes from RFC8210">
+      <section title="Changes from RFC 8210">
         <t>
           This section summarizes the significant changes between
           <xref target="RFC8210"/> and the protocol described in this
@@ -146,15 +147,17 @@
 
 	    <t>
 	      Language was clarified when multiple caches are
-	      configured, and an interesting affect is noted.
+	      configured, and an interesting effect is noted.
 	    </t>
+
             <t>
               The protocol version number incremented from 1 (one) to 2
               (two) and <xref target="version"/> on Protocol Version
               Negotiation has been updated accordingly.
             </t>
+
 	    <t>
-	      Limits the maximum size of a PDU to 64k.
+	      Limits the maximum size of a PDU to 64KB.
 	    </t>
           </list>
         </t>
@@ -168,10 +171,10 @@
 
         <list style="hanging">
           <t hangText="Global RPKI:">
-            The authoritative data of the RPKI are published in a
-            distributed set of servers at the IANA, Regional Internet
-            Registries (RIRs), National Internet Registries (NIRs),
-            and ISPs; see <xref target="RFC6481"/>.
+            The distributed set of servers at the IANA, Regional
+            Internet Registries (RIRs), National Internet Registries
+            (NIRs), and ISPs in which the authoritative data of the
+            RPKI are published.  See <xref target="RFC6481"/>.
           </t>
           <t hangText="CA:">
 	    The authoritative data of the RPKI are meant to be published
@@ -190,36 +193,34 @@
             Party.
           </t>
           <t hangText="Serial Number:">
-            "Serial Number" is a 32-bit strictly increasing unsigned
-            integer which wraps from 2^32-1 to 0.  See <xref
-            target="RFC1982"/> on DNS Serial Number Arithmetic for too
-            much detail on serial number wrapping.  The Serial Number
-            denotes the logical version of a cache.  A cache increments
-            the value when it successfully updates its data from a
-            parent cache or from primary RPKI data.  While a cache is
-            receiving updates, new incoming data and implicit deletes
-            are associated with the new Serial Number but MUST NOT be
-            sent until the fetch is complete.  A Serial Number is not
-            commensurate between different caches or different protocol
-            versions, nor need it be maintained across resets of the
-            cache server.
+            "Serial Number" is a 32-bit unsigned integer which wraps
+            from 2^32-1 to 0.  See <xref target="RFC1982"/> on DNS
+            Serial Number Arithmetic for too much detail on serial
+            number wrapping.  The Serial Number denotes the logical
+            version of a cache.  A cache increments the value when it
+            successfully updates its data from a parent cache or from
+            primary RPKI data.  While a cache is receiving updates,
+            new incoming data and implicit deletes are associated with
+            the new Serial Number but MUST NOT be sent until the fetch
+            is complete.  A Serial Number has no correspondence between
+            different caches or different protocol versions, nor need
+            it be maintained across resets of the cache server.
           </t>
           <t hangText="Session ID:">
             When a cache server starts a new Sequence Number space,
-            (which might be caused by, for example, restart with loss of
-            data) it generates a new Session ID to uniquely identify the
-            instance of the cache and to bind it to the sequence of
-            Serial Numbers that the cache instance generates.  This
-            allows a router to resume a session after a transport
-            connection failure without invalidating the router's data
-            store; as it is assured that the Serial Numbers it uses are
-            commensurate with those of the cache.
+            (which might be caused by, for example, restart with loss
+            of data) it generates a new Session ID to uniquely
+            identify that space. This allows a router to resume a
+            session after a transport connection failure without
+            invalidating the router's data store, as the use of the
+            Session ID assures the router that the Serial Numbers it
+            uses correspond to those used by the cache.
           </t>
           <t hangText="Payload PDU:">
             A payload PDU is a protocol message which contains data for
             use by the router, as opposed to a PDU which conveys the
-            control mechanisms of this protocol.  IPvX Prefixes, Router
-            Keys, ASPA are examples of payload PDUs.
+            control messages of this protocol.  IPv4/IPv6 Prefixes, Router
+            Keys, and ASPAs are examples of payload PDUs.
           </t>
         </list>
       </t>
@@ -273,7 +274,7 @@
 	when the first cache serves that VRP, and the VRP is in effect
 	until the last cache withdraws that VRP.  Thus, in a global
 	sense, the effect of a VRP announcement propagates more quickly
-	than a withdraw.
+	than a withdrawal.
       </t>
       <t>
         Periodically, the router sends a Serial Query to the cache
@@ -359,12 +360,11 @@
             </t>
             <t hangText="Session ID:">
               A 16-bit unsigned integer.  When a cache server is
-              [re]started (i.e. its data are not a continuation of the
-              previous data) it generates a new Session ID to identify
-              the instance of the cache and to bind it to the sequence
-              of Serial Numbers that cache instance will generate.  This
-              allows the router to restart a failed session knowing that
-              the Serial Number it is using is commensurate with that of
+              [re]started (i.e., its data are not a continuation of
+              the previous data), it generates a new Session ID to
+              identify the new instance of the cache. This allows the
+              router to restart a failed session knowing that the
+              Serial Numbers it is using correspond to those used by
               the cache.
             </t>
             <t>
@@ -391,8 +391,8 @@
               further happens to use the same Serial Number values for
               two or more sessions using the same Session ID but
               different Protocol Version values, the Serial Numbers
-              are not commensurate.  The full test for whether Serial
-              Numbers are commensurate requires comparing Protocol
+              do not correspond to each other.  The full test for whether Serial
+              Numbers correspond requires comparing Protocol
               Version, Session ID, and Serial Number.  To reduce the
               risk of confusion, cache servers SHOULD NOT use the same
               Session ID across multiple protocol versions, but even
@@ -402,26 +402,27 @@
             </t>
             <t>
               Should a cache erroneously reuse a Session ID so that a
-              router does not realize that the session has changed (old
-              Session ID and new Session ID have the same numeric value),
-              the router may become confused as to the content of the cache.
-              The time it takes the router to discover this
-              will depend on whether the Serial Numbers are also reused.  If
-              the Serial Numbers in the old and new sessions are different
-              enough, the cache will respond to the router's Serial Query
-              with a Cache Reset, which will solve the problem.  If,
-              however, the Serial Numbers are close, the cache may respond
-              with a Cache Response, which may not be enough to bring the
-              router into sync.  In such cases, it's likely but not
-              certain that the router will detect some discrepancy between
-              the state that the cache expects and its own state.  For
-              example, the Cache Response may tell the router to drop a
-              record which the router does not hold or may tell the
+              router does not realize that the session has changed
+              (old Session ID and new Session ID have the same numeric
+              value), the router may become confused as to the content
+              of the cache.  The time it takes the router to discover
+              this will depend on whether the Serial Numbers are also
+              reused.  If the Serial Number last seen by the router is
+              not one for which the cache has data, the cache will
+              respond to the router's Serial Query with a Cache Reset,
+              which will resolve the problem.  If, however, the Serial
+              Numbers are close, the cache may respond with a Cache
+              Response, which may not be enough to bring the router
+              into sync.  In such cases, it's likely but not certain
+              that the router will detect some discrepancy between the
+              state that the cache expects and its own state.  For
+              example, the Cache Response may tell the router to drop
+              a record which the router does not hold or may tell the
               router to add a record which the router already has.  In
               such cases, a router will detect the error and reset the
-              session.  The one case in which the router may stay out of
-              sync is when nothing in the Cache Response contradicts any
-              data currently held by the router.
+              session.  The one case in which the router may stay out
+              of sync is when nothing in the Cache Response
+              contradicts any data currently held by the router.
             </t>
             <t>
               Using persistent storage for the Session ID or a
@@ -429,12 +430,16 @@
               avoid the risk of Session ID collisions.
             </t>
             <t>
-              The Session ID might be a pseudorandom value, a strictly
-              increasing value if the cache has reliable storage, et
-              cetera.  A seconds-since-epoch timestamp value such as the
-              low order 16 bits of unsigned integer seconds since
-              1970-01-01T00:00:00Z ignoring leap seconds might make a
-              good Session ID value.
+              Session ID synthesis is a matter of cache policy.  For
+              example, a cache could use:
+              <list>
+                <t>pseudorandom number generation;</t>
+                <t>a strictly increasing value, if the cache has
+                reliable storage; or</t>
+                <t>a seconds-since-epoch timestamp value, such as the low
+                order 16 bits of unsigned integer seconds since
+                1970-01-01T00:00:00Z ignoring leap seconds.</t>
+              </list>
             </t>
             <t hangText="Length:">
               A 32-bit unsigned integer which has as its value the count
@@ -451,7 +456,7 @@
               PDU (IPv4 or IPv6), the announce/withdraw flag indicates
               whether this PDU announces a new right to announce the
               prefix or withdraws a previously announced right; a
-              withdraw effectively deletes one previously announced
+              withdrawal effectively deletes one previously announced
               Prefix PDU with the exact same Prefix, Prefix Length,
               Max Length, and Autonomous System Number (ASN).
 	    </t>
@@ -528,8 +533,9 @@
       </section>
 
       <section anchor="notify" title="Serial Notify">
-        <figure>
-          <artwork>
+        <figure anchor="diagram-serial-notify">
+          <name>Serial Notify</name>
+          <artwork align="center">
 0          8          16         24        31
 .-------------------------------------------.
 | Protocol |   PDU    |                     |
@@ -551,8 +557,8 @@
         </t>
         <t>
           The Session ID reassures the router that the Serial Numbers
-          are commensurate, i.e., the cache session has not been
-          changed.
+          it uses correspond to those used by the cache, i.e., the
+          cache session has not been changed.
         </t>
         <t>
           Upon receipt of a Serial Notify PDU, the router MAY issue an
@@ -577,8 +583,9 @@
       </section>
 
       <section anchor="serialquery" title="Serial Query">
-        <figure>
-          <artwork>
+        <figure anchor="diagram-serial-query">
+          <name>Serial Query</name>
+          <artwork align="center">
 0          8          16         24        31
 .-------------------------------------------.
 | Protocol |   PDU    |                     |
@@ -597,7 +604,7 @@
         </figure>
         <t>
           The router sends a Serial Query to ask the cache
-          for all announcements and withdrawals which have
+          for all announcements and withdrawals that have
           occurred since the Serial Number specified in the Serial
           Query.
         </t>
@@ -667,8 +674,9 @@
       </section>
 
       <section anchor="resetquery" title="Reset Query">
-        <figure>
-          <artwork>
+        <figure anchor="diagram-reset-query">
+          <name>Reset Query</name>
+          <artwork align="center">
 0          8          16         24        31
 .-------------------------------------------.
 | Protocol |   PDU    |                     |
@@ -691,8 +699,9 @@
       </section>
 
       <section anchor="cacheresponse" title="Cache Response">
-        <figure>
-          <artwork>
+        <figure anchor="diagram-cache-response">
+          <name>Cache Response</name>
+          <artwork align="center">
 0          8          16         24        31
 .-------------------------------------------.
 | Protocol |   PDU    |                     |
@@ -727,8 +736,9 @@
       </section>
 
       <section anchor="cachereset" title="Cache Reset">
-        <figure>
-          <artwork>
+        <figure anchor="diagram-cache-reset">
+          <name>Cache Reset</name>
+          <artwork align="center">
 0          8          16         24        31
 .-------------------------------------------.
 | Protocol |   PDU    |                     |
@@ -751,8 +761,9 @@
       </section>
 
       <section anchor="eod" title="End of Data">
-        <figure>
-          <artwork>
+        <figure anchor="diagram-end-of-data">
+          <name>End of Data</name>
+          <artwork align="center">
 0          8          16         24        31
 .-------------------------------------------.
 | Protocol |   PDU    |                     |
@@ -807,8 +818,9 @@
       </section>
 
       <section anchor="error" title="Error Report">
-        <figure>
-          <artwork>
+        <figure anchor="diagram-error-report">
+          <name>Error Report</name>
+          <artwork align="center">
 0          8          16         24        31
 .-------------------------------------------.
 | Protocol |   PDU    |                     |
@@ -880,8 +892,9 @@
       </section>
 
       <section anchor="ipv4" title="IPv4 Prefix">
-        <figure>
-          <artwork>
+        <figure anchor="diagram-ipv4-prefix">
+          <name>IPv4 Prefix</name>
+          <artwork align="center">
 0          8          16         24        31
 .-------------------------------------------.
 | Protocol |   PDU    |                     |
@@ -926,16 +939,16 @@
         </t>
         <t>
           The cache server MUST ensure that it has told the router
-          client to have one and only one IPvX VRP for a unique {Prefix,
+          client to have one and only one IPv4 VRP for a unique {Prefix,
           Prefix Length, Max Length, ASN} at any one point in time.  Should the
-          router client receive an IPvX VRP with a {Prefix, Prefix Length,
+          router client receive an IPv4 VRP with a {Prefix, Prefix Length,
           Max Length, ASN} identical to one it already has active, it
           SHOULD raise a Duplicate Announcement Received error.
         </t>
 	<t>
 	  The cache MUST merge announce/withdraw ROAs for the same
 	  {Prefix, Prefix Length, Max Length, ASN} into the minimal (or no) VRP to
-	  update the router to to the desired state.
+	  update the router to the desired state.
 	</t>
         <t>
 
@@ -952,8 +965,9 @@
         </section>
 
       <section anchor="ipv6" title="IPv6 Prefix">
-        <figure>
-          <artwork>
+        <figure anchor="diagram-ipv6-prefix">
+          <name>IPv6 Prefix</name>
+          <artwork align="center">
 0          8          16         24        31
 .-------------------------------------------.
 | Protocol |   PDU    |                     |
@@ -993,8 +1007,9 @@
       </section>
 
       <section anchor="routerkey" title="Router Key">
-        <figure>
-          <artwork>
+        <figure anchor="diagram-router-key">
+          <name>Router Key</name>
+          <artwork align="center">
 0          8          16         24        31
 .-------------------------------------------.
 | Protocol |   PDU    |          |          |
@@ -1026,7 +1041,7 @@
           </artwork>
         </figure>
 	<t>
-	  The Router Key PDU transports they payload of a Router Key
+	  The Router Key PDU transports the payload of a Router Key
 	  <xref target="RFC8635"/>.
 	</t>
         <t>
@@ -1066,8 +1081,9 @@
 
       <section anchor="aspa" title="ASPA">
 	<!-- protocol "Protocol Version 2:8,PDU Type 11:8,Flags:8,zero:8,Length:32,Customer Autonomous System Number:32,Provider Autonomous System Numbers:32" -->
-        <figure>
-          <artwork>
+        <figure anchor="diagram-aspa">
+          <name>ASPA</name>
+          <artwork align="center">
 0          8          16         24        31
 .-------------------------------------------.
 | Protocol |   PDU    |          |          |
@@ -1094,9 +1110,8 @@
 	  target="I-D.ietf-sidrops-aspa-profile"/>.
 	</t>
         <t>
-          The Customer Autonomous System Number is the 32-bit Autonomous
-          System Number of the customer which authenticated the ASPA
-          RPKI record(s).
+          The Customer Autonomous System Number corresponds to the
+          customerASID from the underlying ASPA object(s).
         </t>
         <t>
           There are zero or more 32-bit Provider Autonomous System
@@ -1124,18 +1139,20 @@
           deliver the complete data of the ASPA record(s) of a CAS in
           a single ASPA PDU.
 	</t>
+
         <t>
           For the ASPA PDU, the announce/withdraw flag is set to 1 to
           indicate either the announcement of a new ASPA record or a
           replacement for a previously announced record from that
           cache with the same Customer Autonomous System Number.  For
           an announcement, the PDU MUST contain at least one Provider
-          Autonomous System Number. If it does not, an Error PDU with
-          Error Code 9 ("ASPA Provider List Error") is returned by the
+          Autonomous System Number. If it does not, an Error Report PDU with
+          Error Code 9 ("ASPA Provider List Error") MUST be returned by the
           router. Also, an ASPA announcement PDU containing multiple
           Provider Autonomous System Numbers MUST NOT contain AS 0. If
-          it does, an Error PDU with Error Code 9 is returned.
+          it does, an Error Report PDU with Error Code 9 MUST be returned.
         </t>
+
 	<t>
           If the announce/withdraw flag is set to 0 in an ASPA PDU,
           the customer AS of the ASPA record MUST be provided, there
@@ -1225,7 +1242,7 @@
     <section anchor="version" title="Protocol Version Negotiation">
       <t>
         Once a router has established a transport connection to a cache,
-        it MUST attempt to open a RPKI-Router 'session' by issuing
+        it MUST attempt to open an RPKI-Router 'session' by issuing
         either a Reset Query <xref target="resetquery"/>) or a Serial
         Query (<xref target="serialquery"/>) with the highest version of
         this protocol the router implements in the Protocol Version
@@ -1236,7 +1253,7 @@
       <t>
         If a cache which supports version C receives a query with
         Protocol Version Q &lt; C, and the cache does not support
-        versions &lt;= Q, the cache MUST send an Error Report (<xref
+        versions &lt;= Q, the cache MUST send an Error Report PDU (<xref
         target="error"/>) with Protocol Version C and Error Code 4
         ("Unsupported Protocol Version") and disconnect the transport,
         as negotiation is hopeless.
@@ -1247,17 +1264,18 @@
         the cache MUST establish the session at protocol version Q,
         <xref target="RFC6810"/> or <xref target="RFC8210"/>, and
         respond with a Cache Response (<xref target="cacheresponse"/>)
-        of that Protocol Version, Q, and the RPKI-Rtr session is
-        considered open.
+        of that Protocol Version, Q.  The RPKI-Router session is
+        then considered open.
       </t>
       <t>
-        If the the cache which supports C as its highest verion receives
-        a query of version Q &gt; C, the cache MUST send an Error Report
-        with Protocol Version C and Error Code 4.  The router SHOULD
-        send another query with a Protocol Version Q with Q == the
-        version C in the Error Report; unless it has already failed at
-        that version, which indicates a fatal error in programming of
-        the cache which SHOULD result in transport termination.
+        If the cache which supports C as its highest version receives
+        a query of version Q &gt; C, the cache MUST send an Error
+        Report PDU with Protocol Version C and Error Code 4.  The
+        router SHOULD send another query with a Protocol Version Q
+        with Q == the version C in the Error Report PDU unless it has
+        already failed at that version, which indicates a fatal error
+        in programming of the cache which SHOULD result in transport
+        termination.
       </t>
       <t>
         If the router requests Q == 0 and it still fails with the cache
@@ -1274,7 +1292,8 @@
         If either party receives a PDU containing an unrecognized
         Protocol Version (neither 0, 1, nor 2) during this negotiation,
         it MUST either downgrade to a known version or terminate the
-        connection, with an Error Report PDU unless the received PDU is
+        connection, with an Error Report PDU with Error Code 4
+        ("Unsupported Protocol Version") unless the received PDU is
         itself an Error Report PDU.
       </t>
       <t>
@@ -1286,7 +1305,7 @@
         to the router.  Even if these values were meaningful, the only
         effect that processing the notification would have would be to
         trigger exactly the same Reset Query or Serial Query that the
-        router has already sent as part of the not-yet-complete version
+        router had already sent as part of the not-yet-complete version
         negotiation process, so there is nothing to be gained by
         processing Serial Notify PDUs until version negotiation
         completes.
@@ -1305,10 +1324,10 @@
         Session ID.
       </t>
       <t>
-	The configured transport security, the negotiated RPKI-Rtr
-	version, etc. MAY NOT be changed once a session has been
+	The configured transport security, the negotiated RPKI-Router
+	version, etc., MAY NOT be changed once a session has been
 	established.  If one side or the other wishes to try a different
-	transport, protocol version, etc. they MUST terminate the
+	transport, protocol version, etc., it MUST terminate the
 	transport and restart the entire transport and version
 	negotiation process.
       </t>
@@ -1317,7 +1336,7 @@
         Version once the above negotiation completes, that party MUST
         drop the session; unless the PDU containing the unexpected
         Protocol Version was itself an Error Report PDU, the party
-        dropping the session SHOULD send an Error Report with Error
+        dropping the session SHOULD send an Error Report PDU with Error
         Code 8 ("Unexpected Protocol Version").
       </t>
     </section>
@@ -1330,8 +1349,9 @@
       </t>
 
       <section anchor="start" title="Start or Restart">
-        <figure>
-          <artwork>
+        <figure anchor="diagram-start-or-restart">
+          <name>Start or Restart</name>
+          <artwork align="center">
 Cache                         Router
   ~                             ~
   | &lt;----- Reset Query -------- | R requests data (or Serial Query)
@@ -1353,7 +1373,7 @@ Cache                         Router
           Session ID of that session, in which case a Serial Query
           containing the Session ID from the previous session will allow
           the router to bring itself up to date while ensuring that the
-          Serial Numbers are commensurate and that the router and cache
+          Serial Numbers correspond and that the router and cache
           are speaking compatible versions of the protocol.  In all
           other cases, the router lacks the necessary data for fast
           resynchronization and therefore MUST fall back to a Reset
@@ -1379,8 +1399,9 @@ Cache                         Router
       </section>
 
       <section anchor="query" title="Typical Exchange">
-        <figure>
-          <artwork>
+        <figure anchor="diagram-typical-exchange">
+          <name>Typical Exchange</name>
+          <artwork align="center">
 Cache                         Router
   ~                             ~
   | -------- Notify ----------&gt; |  (optional)
@@ -1419,8 +1440,9 @@ Cache                         Router
       </section>
 
       <section anchor="nodiff" title="No Incremental Update Available ">
-        <figure>
-          <artwork>
+        <figure anchor="diagram-no-incremental-update-available">
+          <name>No Incremental Update Available</name>
+          <artwork align="center">
 Cache                         Router
   ~                             ~
   | &lt;------ Serial Query ------ | R requests data
@@ -1455,18 +1477,19 @@ Cache                         Router
       </section>
 
       <section anchor="nodata" title="Cache Has No Data Available">
-        <figure>
-          <artwork>
+        <figure anchor="diagram-cache-has-no-data-available">
+          <name>Cache Has No Data Available</name>
+          <artwork align="center">
 Cache                         Router
   ~                             ~
   | &lt;------ Serial Query ------ | R requests data
-  | ---- Error Report PDU ----&gt; | C No Data Available
+  | ------ Error Report ------&gt; | C No Data Available
   ~                             ~
 
 Cache                         Router
   ~                             ~
   | &lt;------ Reset Query ------- | R requests data
-  | ---- Error Report PDU ----&gt; | C No Data Available
+  | ------ Error Report ------&gt; | C No Data Available
   ~                             ~
           </artwork>
         </figure>
@@ -1566,7 +1589,7 @@ Cache                         Router
     <section anchor="Transport" title="Transport">
       <t>
         The transport-layer session between a router and a cache
-        carries the binary PDUs in a persistent reliable session.
+        carries the binary PDUs in a persistent, reliable session.
       </t>
       <t>
         To prevent cache spoofing and DoS attacks by illegitimate
@@ -1586,11 +1609,12 @@ Cache                         Router
       </t>
       <t>
 	Should the cache or the router experience a transport stall
-	(e.g. the peer advertised a TCP RCV.WND <xref target="RFC793"/>
+	(e.g., the peer advertised a TCP RCV.WND <xref target="RFC793"/>
 	<xref target="RFC9293"/> of zero) for longer than three times
 	the Retry Interval (a la BGP's hold timer being three times the
-	keepalive interval), an Error PDU 10, Transport Failure, should
-	be sent and the transport session should be terminated.
+	keepalive interval), an Error Report PDU with Error Code 10
+        ("Transport Failure") SHOULD be sent and the transport session
+        SHOULD be terminated.
       </t>
       <t>
 	A cache SHOULD NOT use a separate TCP segment for each PDU, but
@@ -1604,7 +1628,7 @@ Cache                         Router
       <t>
 	Should a transport connection be lost for unknown reasons, the
 	router SHOULD try to reestablish one; being careful to not abuse
-	the cache with two many failed requests.
+	the cache with too many failed requests.
       </t>
       <t>
         It is expected that, when the TCP Authentication Option
@@ -1651,8 +1675,9 @@ Cache                         Router
       <t>
         Caches and routers MAY use Transport Layer Security (TLS)
         transport <xref target="RFC8446"/> using port rpki-rtr-tls
-        (324); see <xref target="IANA"/>.  Conformance to <xref
-	target="BCP195"/> modern cipher suites is REQUIRED.
+        (324); see <xref target="IANA"/>.  When using TLS, the
+        recommendations from <xref
+	target="BCP195"/> MUST be followed.
       </t>
     </list></t>
 
@@ -2321,7 +2346,7 @@ Cache                         Router
             alternative implementation approach described in this
             section, will be at risk of encountering the problems
             described in <xref target="races" />.  While such problems
-            will generally be transient, because a subsequent PDU
+            will generally be transient because a subsequent PDU
             received during the same synchronisation attempt should
             act to rectify the problem, there is a risk that those
             PDUs are not received due to an error during the
@@ -2337,7 +2362,7 @@ Cache                         Router
 
         <t>
 
-            A client that applies PDUs transactionally (e.g. on
+            A client that applies PDUs transactionally (e.g., on
             receipt of an End of Data PDU) SHOULD consider limiting
             the period of time for which it will wait for the PDU that
             will close the transaction.  This is especially important
@@ -2349,15 +2374,16 @@ Cache                         Router
         <t>
 
             A client MAY verify the ordering of PDUs, and when an
-            ordering error is encountered, send an Ordering Error PDU
-            to the server and terminate the session.  However, given
-            that ordering issues lead only to transient problems, and
-            also that resetting the session with the same cache is
-            unlikely to fix the problem, clients should consider
-            whether terminating the session is worthwhile.  For
-            example, if another cache is available, that may weigh in
-            favour of terminating the current session and switching to
-            that other cache.
+            ordering error is encountered, send an Error Report PDU
+            with Error Code 11 ("Ordering Error") to the server and
+            terminate the session.  However, given that ordering
+            issues lead only to transient problems, and also that
+            resetting the session with the same cache is unlikely to
+            fix the problem, clients should consider whether
+            terminating the session is worthwhile.  For example, if
+            another cache is available, that may weigh in favour of
+            terminating the current session and switching to that
+            other cache.
 
         </t>
 
@@ -2555,10 +2581,9 @@ Cache                         Router
 
     <section anchor="Security" title="Security Considerations">
       <t>
-        As this document describes a security protocol, many aspects of
-        security interest are described in the relevant sections.  This
-        section points out issues which may not be obvious in other
-        sections.
+        Many aspects of security interest are described throughout
+        this document.  This section points out issues which may not
+        be obvious in other sections.
         <list style="hanging">
           <t hangText="Cache Peer Identification:">
             The router initiates a transport connection to a cache, which it
@@ -2589,13 +2614,13 @@ Cache                         Router
             cannot do the validation cryptography.  Hence, the last
             link, from cache to router, SHOULD be secured by server
             authentication and transport-level security to prevent
-            monkey in the middle attacks; though it might not be.  Not
+            monkey-in-the-middle attacks; though it might not be.  Not
             using transport security is dangerous, as server
             authentication and transport have very different threat
             models than object security.
           </t>
           <t>
-            So the strength of the trust relationship and the transport
+            So, the strength of the trust relationship and the transport
             between the router(s) and the cache(s) are critical.  You're
             betting your routing on this.
           </t>
@@ -2603,7 +2628,7 @@ Cache                         Router
             While we cannot say the cache must be on the same LAN, if
             only due to the issue of an enterprise wanting to offload the
             cache task to their upstream ISP(s), locality, trust, and
-            control are very critical issues here.  The cache(s) really
+            control are critical issues here.  The cache(s) really
             SHOULD be as close, in the sense of controlled and protected
             (against DDoS, MITM) transport, to the router(s) as possible.
             It also SHOULD be topologically close so that a minimum of
@@ -2611,7 +2636,7 @@ Cache                         Router
             to a cache.
           </t>
           <t>
-            Authenticating transport protocols (i.e. not raw TCP) will
+            Authenticating transport protocols (i.e., not raw TCP) will
             authenticate the identity of the cache server to the router
             client, and vice versa, before any data are exchanged.
           </t>
@@ -2619,7 +2644,7 @@ Cache                         Router
             Transports which cannot provide the necessary authentication
             and integrity (see <xref target="Transport"/>) must rely on
             network design and operational controls to provide protection
-            against spoofing/corruption attacks.  As pointed out in
+            against spoofing and corruption attacks.  As pointed out in
             <xref target="Transport"/>, TCP-AO is the long-term plan.
             Protocols which provide integrity and authenticity SHOULD be
             used, and if they cannot, i.e., TCP is used as the transport,
