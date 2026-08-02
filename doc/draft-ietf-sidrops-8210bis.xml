@@ -648,7 +648,7 @@
         If the router and cache have already established a session
         between them, and the router sends a Serial Notify query with
         a Session ID different from that previously communicated to
-        the router by the client, then the cache terminates the
+        the router by the cache, then the cache terminates the
         session with an Error Report PDU with Error Code 0 ("Corrupt
         Data"), per <xref target="fields" />.
 
