@@ -920,8 +920,8 @@
           </artwork>
         </figure>
 	<t>
-	  This PDU carries a VRP for an IPv4 ROA <xref
-	  target="RFC6811"/>.
+	  This PDU carries an IPv4 VRP <xref target="RFC6811" /> for a ROA <xref
+	  target="RFC9582"/>.
 	</t>
         <t>
           The lowest-order bit of the Flags field is 1 for an
@@ -997,8 +997,8 @@
           </artwork>
         </figure>
 	<t>
-	  This PDU carries a VRP for an IPv6 ROA <xref
-	  target="RFC6811"/>.
+	  This PDU carries an IPv6 VRP <xref target="RFC6811" /> for a ROA <xref
+	  target="RFC9582"/>.
 	</t>
         <t>
           The behaviour specified in the previous section for the IPv4

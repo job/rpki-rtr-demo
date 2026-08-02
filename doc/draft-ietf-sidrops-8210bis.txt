@@ -940,7 +940,7 @@ Internet-Draft            RPKI-Router Protocol               August 2026
 
                            Figure 8: IPv4 Prefix
 
-   This PDU carries a VRP for an IPv4 ROA [RFC6811].
+   This PDU carries an IPv4 VRP [RFC6811] for a ROA [RFC9582].
 
    The lowest-order bit of the Flags field is 1 for an announcement and
    0 for a withdrawal.
@@ -1039,7 +1039,7 @@ Internet-Draft            RPKI-Router Protocol               August 2026
 
                            Figure 9: IPv6 Prefix
 
-   This PDU carries a VRP for an IPv6 ROA [RFC6811].
+   This PDU carries an IPv6 VRP [RFC6811] for a ROA [RFC9582].
 
    The behaviour specified in the previous section for the IPv4 Prefix
    PDU is also applicable to the IPv6 Prefix PDU.
