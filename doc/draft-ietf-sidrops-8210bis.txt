@@ -955,7 +955,7 @@ Internet-Draft            RPKI-Router Protocol               August 2026
 
 
    In the RPKI, there is an actual need for what might appear to a
-   router as identical IPvX PDUs.  This can occur when an upstream
+   router as identical IPv4 PDUs.  This can occur when an upstream
    certificate is being reissued or there is an address ownership
    transfer up the validation chain.  The ROA would be identical in the
    router sense, i.e., have the same {Prefix, Prefix Length, Max Length,
@@ -2262,15 +2262,15 @@ Internet-Draft            RPKI-Router Protocol               August 2026
 
    6: Withdrawal of Unknown Record (fatal):  The received PDU has
       Flag=0, but a matching record ({Prefix, Prefix Length, Max Length,
-      ASN} tuple for an IPvX PDU, or {SKI, AS, Subject Public Key} tuple
-      for a Router Key PDU), or Customer Autonomous System for an ASPA
-      PDU does not exist in the receiver's database.
+      ASN} tuple for an IPv4/IPv6 PDU, or {SKI, AS, Subject Public Key}
+      tuple for a Router Key PDU), or Customer Autonomous System for an
+      ASPA PDU does not exist in the receiver's database.
 
    7: Duplicate Announcement Received (fatal):  The received PDU has
       Flag=1, but a matching record ({Prefix, Prefix Length, Max Length,
-      ASN} tuple for an IPvX PDU, or {SKI, AS, Subject Public Key} tuple
-      for a Router Key PDU), or Customer Autonomous System for an ASPA
-      PDU is already active in the router.
+      ASN} tuple for an IPv4/IPv6 PDU, or {SKI, AS, Subject Public Key}
+      tuple for a Router Key PDU), or Customer Autonomous System for an
+      ASPA PDU is already active in the router.
 
    8: Unexpected Protocol Version (fatal):  The received PDU has a
       Protocol Version field that differs from the protocol version
